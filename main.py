@@ -1,44 +1,69 @@
 import pygame as py
+from sys import exit
 import random
+from settings import *
+import math
+# imported pygame as py so it is easier to write
 
 black = (0, 0, 0)
 white = (255, 255, 255)
-lightRed = ("#F00022")
-weakRed = ("#BD263A")
-greyRed = ("#8A3742")
-grey = ("#574544")
-
+lightRed = "#F00022"
+weakRed = "#BD263A"
+greyRed = "#8A3742"
+grey = "#574544"
+# initialising different colour values and assigning them to specific variables to reference later
 
 py.init()
+# initialising pygame
 
-display_width = int(1440)
-display_height = int(720)
 screenSize = (display_width, display_height)
-
-x_change = 0
-y_change = 0
-
 screen = py.display.set_mode(screenSize)
-py.display.set_caption('Platformer Game')
+py.display.set_caption('Top Down Shooter Game')
 clock = py.time.Clock()
-screen.fill(lightRed)
+# creating the window, using dimensions from settings file, setting a name for the window, initialising the clock
 
-py.draw.rect(screen, weakRed, py.Rect(30, 30, 60, 60))
+# load images
+background = py.transform.scale(py.image.load("background.jpg"), (display_width, display_height)).convert_alpha()
+
+
+class Player(py.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = py.transform.rotozoom(py.image.load("player_sprite.png").convert_alpha(), 0, player_size)
+        self.pos = py.math.Vector2(player_start_x, player_start_y)
+        self.speed = player_speed
+
+    def user_input(self):
+        self.velocity_x = 0
+        self.velocity_y = 0
+
+        keys = py.key.get_pressed()
+
+        if keys[py.K_w]:
+            self.velocity_y = -self.speed
+        if keys[py.K_s]:
+            self.velocity_y = self.speed
+        if keys[py.K_a]:
+            self.velocity_x = -self.speed
+        if keys[py.K_d]:
+            self.velocity_x = self.speed
+
+        if self.velocity_x != 0 and self.velocity_y != 0:
+            self.velocity_x /= math.sqrt(2)
+            self.velocity_y /= math.sqrt(2)
+        # makes diagonal speed the same as horizontal and vertical speed
+
+    def move(self):
+        self.pos += py.math.Vector2(self.velocity_x, self.velocity_y)
+
+    def update(self):
+        self.user_input()
+        self.move()
+
+
+player = Player()
 
 crashed = False
-
-playerImg = py.image.load("player_sprite.png")
-py.transform.scale(playerImg, (0.2, 0.2))
-
-x = (display_width * 0.45)
-y = (display_height * 0.8)
-playerSpeed = 0
-
-
-def player(x, y):
-    screen.blit(playerImg, (x, y))
-
-
 while not crashed:
 
     for event in py.event.get():
@@ -47,33 +72,13 @@ while not crashed:
 
         print(event)
 
-        if event.type == py.KEYDOWN:
-            if event.key == py.K_LEFT:
-                x_change = -5
-            elif event.key == py.K_RIGHT:
-                x_change = 5
-            if event.key == py.K_UP:
-                y_change = -5
-            elif event.key == py.K_DOWN:
-                y_change = 5
-
-        if event.type == py.KEYUP:
-            if event.key == py.K_LEFT or event.key == py.K_RIGHT:
-                x_change = 0
-            if event.key == py.K_UP or event.key == py.K_DOWN:
-                y_change = 0
-
-    x += x_change
-    y += y_change
-
-    screen.fill(lightRed)
-    player(x, y)
+    screen.blit(background, (0, 0))
+    screen.blit(player.image, player.pos)
+    player.update()
 
     py.display.update()
-    clock.tick(60)
+    clock.tick(FPS)
 
 
 py.quit()
 quit()
-
-

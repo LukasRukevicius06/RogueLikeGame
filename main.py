@@ -27,11 +27,17 @@ background = py.transform.scale(py.image.load("background.jpg"), (display_width,
 
 
 class Player(py.sprite.Sprite):
+    # makes class for the player with methods inside to allow it to move
     def __init__(self):
+        # initialising the function
         super().__init__()
         self.image = py.transform.rotozoom(py.image.load("player_sprite.png").convert_alpha(), 0, player_size)
         self.pos = py.math.Vector2(player_start_x, player_start_y)
+        self.base_image = self.image
+        self.hb_rect = self.base_image.get_rect(center = self.pos)
+        self.rect = self.hb_rect.copy()
         self.speed = player_speed
+
 
     def user_input(self):
         self.velocity_x = 0

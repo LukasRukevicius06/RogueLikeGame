@@ -3,7 +3,10 @@ from sys import exit
 import random
 from settings import *
 import math
+import time
+from PIL import Image
 # imported pygame as py so it is easier to write
+
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -17,14 +20,22 @@ py.init()
 # initialising pygame
 
 screenSize = (display_width, display_height)
-screen = py.display.set_mode(screenSize)
+screen = py.display.set_mode(screenSize,py.RESIZABLE)
 py.display.set_caption('Top Down Shooter Game')
 clock = py.time.Clock()
 # creating the window, using dimensions from settings file, setting a name for the window, initialising the clock
 
+platform = py.image.load('platform.png')
 # load images
-background = py.transform.scale(py.image.load("background.jpg"), (display_width, display_height)).convert_alpha()
-
+background = py.transform.scale(py.image.load("background2.jpg"), (display_width, display_height)).convert_alpha()
+crosshair = py.image.load('crosshair.png')
+crosshair = py.transform.smoothscale(crosshair, (50,50))
+# chImage = Image.open('crosshair.png')
+# chImage = chImage.resize((50,50), Image.LANCZOS)
+#
+#
+# chStr = chImage.tobytes("raw", "RGBA")
+# crosshair = py.image.fromstring(chStr, (50,50), "RGBA")
 
 class Player(py.sprite.Sprite):
     # makes class for the player with methods inside to allow it to move
@@ -78,8 +89,12 @@ while not crashed:
 
         print(event)
 
+    point = py.mouse.get_pos()
     screen.blit(background, (0, 0))
+    screen.blit(platform, (display_width/2, display_height/2))
     screen.blit(player.image, player.pos)
+    #screen.blit(crosshair, ((point[0]+25)(point[1]-25)))
+    screen.blit(crosshair, (point))
     player.update()
 
     py.display.update()

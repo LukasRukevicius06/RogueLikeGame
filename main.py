@@ -48,6 +48,7 @@ class Player(py.sprite.Sprite):
         self.hb_rect = self.base_image.get_rect(center = self.pos)
         self.rect = self.hb_rect.copy()
         self.speed = player_speed
+        self.flip = False
 
 
     def user_input(self):
@@ -62,8 +63,15 @@ class Player(py.sprite.Sprite):
             self.velocity_y = self.speed
         if keys[py.K_a]:
             self.velocity_x = -self.speed
+            if self.flip == True:
+                self.image = py.transform.flip(self.image, True, False)
+                self.flip = False
         if keys[py.K_d]:
             self.velocity_x = self.speed
+            if self.flip == False:
+                self.image = py.transform.flip(self.image, True, False)
+                self.flip = True
+
 
         if self.velocity_x != 0 and self.velocity_y != 0:
             self.velocity_x /= math.sqrt(2)
@@ -78,6 +86,11 @@ class Player(py.sprite.Sprite):
         self.move()
 
 
+class Projectile(object):
+    def __init__(self,x,y,radius,colour):
+
+
+
 player = Player()
 
 crashed = False
@@ -89,12 +102,12 @@ while not crashed:
 
         print(event)
 
-    point = py.mouse.get_pos()
+    x_point = py.mouse.get_pos()[0]
+    y_point = py.mouse.get_pos()[1]
     screen.blit(background, (0, 0))
     screen.blit(platform, (display_width/2, display_height/2))
     screen.blit(player.image, player.pos)
-    #screen.blit(crosshair, ((point[0]+25)(point[1]-25)))
-    screen.blit(crosshair, (point))
+    screen.blit(crosshair,((x_point-23),(y_point-20)))
     player.update()
 
     py.display.update()

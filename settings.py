@@ -1,6 +1,6 @@
 # game setup
-display_width = 1440
-display_height = 720
+display_width = 1920
+display_height = 1080
 FPS = 60
 
 # defining player variables

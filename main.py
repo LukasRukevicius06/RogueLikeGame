@@ -34,8 +34,6 @@ crosshair = py.transform.smoothscale(crosshair, (50,50))
 py.display.set_icon(gameIcon)
 # chImage = Image.open('crosshair.png')
 # chImage = chImage.resize((50,50), Image.LANCZOS)
-#
-#
 # chStr = chImage.tobytes("raw", "RGBA")
 # crosshair = py.image.fromstring(chStr, (50,50), "RGBA")
 
@@ -45,7 +43,7 @@ class Player(py.sprite.Sprite):
         # initialising the function
         super().__init__()
         self.image = py.transform.rotozoom(py.image.load("player_sprite.png").convert_alpha(), 0, player_size)
-        self.image = py.transform.scale(self.image, (280, 210))
+        self.image = py.transform.scale(self.image, (100, 130))
         self.pos = py.math.Vector2(player_start_x, player_start_y)
         self.base_image = self.image
         self.hb_rect = self.base_image.get_rect(center = self.pos)
@@ -84,6 +82,7 @@ class Player(py.sprite.Sprite):
         # makes diagonal speed the same as horizontal and vertical speed
 
     def move(self):
+        # movement function for player
         self.pos += py.math.Vector2(self.velocity_x, self.velocity_y)
         self.hb_rect.center = self.pos
         self.rect.center = self.hb_rect.center

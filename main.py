@@ -49,6 +49,10 @@ class Player(py.sprite.Sprite):
         self.hb_rect = self.base_image.get_rect(center = self.pos)
         self.rect = self.hb_rect.copy()
         self.speed = player_speed
+        self.shoot = False
+        # boolean to state whether player has shot
+        self.shoot_cooldown = 0
+        # variable for the cooldown of how often player can shoot
 
     def player_rotation(self):
         self.mouse_coords = py.mouse.get_pos()
@@ -81,6 +85,19 @@ class Player(py.sprite.Sprite):
             self.velocity_y /= math.sqrt(2)
         # makes diagonal speed the same as horizontal and vertical speed
 
+        if py.mouse.get_pressed(1, 0, 0) or keys[py.K_SPACE]:
+            # if left mouse clicked or space bar pressed, will run function to shoot
+            self.shoot = True
+            self.is_shooting()
+        else:
+            self.shoot = False
+
+    def is_shooting(self):
+        if self.shoot_cooldown == 0:
+            self.shoot_cooldown = shot_cd
+
+
+
     def move(self):
         # movement function for player
         self.pos += py.math.Vector2(self.velocity_x, self.velocity_y)
@@ -92,9 +109,16 @@ class Player(py.sprite.Sprite):
         self.move()
         self.player_rotation()
 
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= 1
 
-#class Projectile(object):
-#    def __init__(self,x,y,radius,colour):
+
+class Projectile(py.sprite.Sprite):
+    # made a class for every projectile that will be in my game, so I can use it for enemies later on
+    def __init__(self, x, y, angle):
+        super().__init__()
+        self.image = py.image.load("bullet_sprite.png").convert_alpha()
+
 
 
 

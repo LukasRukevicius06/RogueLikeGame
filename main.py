@@ -120,23 +120,32 @@ class Projectile(py.sprite.Sprite):
     def __init__(self, x, y, angle):
         super().__init__()
         self.image = py.image.load("bullet_sprite.png").convert_alpha()
+        # imported image and made its background transparent as it's a png
         self.image = py.transform.rotozoom(self.image, 0, BULLET_SCALE)
+        # made the bullet sprite smaller or larger depending on the scale in the settings
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.x = x
         self.y = y
         self.angle = angle
         self.image = py.transform.rotate(self.image, (-self.angle - 90))
+        # made image rotate based on the angle where the mouse is relative to the player and took away 90 degrees so it would face the right direction
         self.speed = BULLET_SPEED
         self.x_v = math.cos(self.angle * ((2*math.pi)/360)) * self.speed
         self.y_v = math.sin(self.angle * ((2*math.pi)/360)) * self.speed
 
+    def __del__(self):
+        print("deleted")
     def bullet_movement(self):
+        # function that makes the bullet actually move and moves the rect position as well for when collision is added
         self.x += self.x_v
         self.y += self.y_v
 
         self.rect.x = int(self.x)
         self.rect.y = int(self.y)
+
+        #if self.x > 1920 or self.x < 0 or self.y > 1080 or self.y < 0:
+            #del Projectile
 
     def update(self):
         self.bullet_movement()
@@ -144,7 +153,9 @@ class Projectile(py.sprite.Sprite):
 player = Player()
 
 all_sprites_group = py.sprite.Group()
+# made a group for all sprites to easily dislay them all on the screen at the same time
 bullet_group = py.sprite.Group()
+# made a group for all bullets in case I want to alter how they appear on the screen
 
 all_sprites_group.add(player)
 crashed = False
@@ -155,9 +166,10 @@ while not crashed:
 
         print(event)
 
-    #py.draw.rect(lightRed, py.Rect(30, 30, 60, 60))
     x_point = py.mouse.get_pos()[0]
+    # stores the x of the mouse position
     y_point = py.mouse.get_pos()[1]
+    # stores the y of the mouse position
     screen.blit(background, (0, 0))
     all_sprites_group.draw(screen)
     all_sprites_group.update()

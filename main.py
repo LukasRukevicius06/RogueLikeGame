@@ -85,7 +85,7 @@ class Player(py.sprite.Sprite):
             self.velocity_y /= math.sqrt(2)
         # makes diagonal speed the same as horizontal and vertical speed
 
-        if py.mouse.get_pressed(1, 0, 0) or keys[py.K_SPACE]:
+        if keys[py.K_SPACE]:
             # if left mouse clicked or space bar pressed, will run function to shoot
             self.shoot = True
             self.is_shooting()
@@ -95,8 +95,10 @@ class Player(py.sprite.Sprite):
     def is_shooting(self):
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = shot_cd
-
-
+            spawn_bullet_pos = self.pos
+            self.bullet = Projectile(spawn_bullet_pos[0], spawn_bullet_pos[1], self.angle)
+            bullet_group.add(self.bullet)
+            all_sprites_group.add(self.bullet)
 
     def move(self):
         # movement function for player
@@ -118,13 +120,33 @@ class Projectile(py.sprite.Sprite):
     def __init__(self, x, y, angle):
         super().__init__()
         self.image = py.image.load("bullet_sprite.png").convert_alpha()
+        self.image = py.transform.rotozoom(self.image, 0, BULLET_SCALE)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.x = x
+        self.y = y
+        self.angle = angle
+        self.image = py.transform.rotate(self.image, (-self.angle - 90))
+        self.speed = BULLET_SPEED
+        self.x_v = math.cos(self.angle * ((2*math.pi)/360)) * self.speed
+        self.y_v = math.sin(self.angle * ((2*math.pi)/360)) * self.speed
 
+    def bullet_movement(self):
+        self.x += self.x_v
+        self.y += self.y_v
 
+        self.rect.x = int(self.x)
+        self.rect.y = int(self.y)
 
-
+    def update(self):
+        self.bullet_movement()
 
 player = Player()
 
+all_sprites_group = py.sprite.Group()
+bullet_group = py.sprite.Group()
+
+all_sprites_group.add(player)
 crashed = False
 while not crashed:
     for event in py.event.get():
@@ -137,10 +159,10 @@ while not crashed:
     x_point = py.mouse.get_pos()[0]
     y_point = py.mouse.get_pos()[1]
     screen.blit(background, (0, 0))
+    all_sprites_group.draw(screen)
+    all_sprites_group.update()
     screen.blit(platform, (display_width/2, display_height/2))
-    screen.blit(player.image, player.rect)
     screen.blit(crosshair,((x_point-23),(y_point-20)))
-    player.update()
     py.draw.rect(screen, "red", player.hb_rect, width=2)
     py.draw.rect(screen, "yellow", player.rect, width=2)
 

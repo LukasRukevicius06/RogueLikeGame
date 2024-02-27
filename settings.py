@@ -8,4 +8,6 @@ player_start_x = (display_width/2)
 player_start_y = (display_height/2)
 player_size = 1
 player_speed = 8
-shot_cd = 1
+shot_cd = 15
+BULLET_SCALE = 0.1
+BULLET_SPEED = 40

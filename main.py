@@ -53,6 +53,7 @@ class Player(py.sprite.Sprite):
         # boolean to state whether player has shot
         self.shoot_cooldown = 0
         # variable for the cooldown of how often player can shoot
+        self.gun_barrel_offset = py.math.Vector2(GUN_OFFSET_X, GUN_OFFSET_Y)
 
     def player_rotation(self):
         self.mouse_coords = py.mouse.get_pos()
@@ -133,9 +134,10 @@ class Projectile(py.sprite.Sprite):
         self.speed = BULLET_SPEED
         self.x_v = math.cos(self.angle * ((2*math.pi)/360)) * self.speed
         self.y_v = math.sin(self.angle * ((2*math.pi)/360)) * self.speed
+        self.bullet_lifetime = BULLET_LIFETIME
+        self.spawn_time = py.time.get_ticks()
+        # gets the specific time that the bullet was created
 
-    def __del__(self):
-        print("deleted")
     def bullet_movement(self):
         # function that makes the bullet actually move and moves the rect position as well for when collision is added
         self.x += self.x_v
@@ -144,11 +146,16 @@ class Projectile(py.sprite.Sprite):
         self.rect.x = int(self.x)
         self.rect.y = int(self.y)
 
-        #if self.x > 1920 or self.x < 0 or self.y > 1080 or self.y < 0:
-            #del Projectile
+        if py.time.get_ticks() - self.spawn_time > self.bullet_lifetime:
+            self.kill()
+
 
     def update(self):
         self.bullet_movement()
+
+
+class Enemy(py.sprite.Sprite):
+    def __init__(self):
 
 player = Player()
 

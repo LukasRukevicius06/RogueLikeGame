@@ -97,7 +97,7 @@ class Player(py.sprite.Sprite):
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = shot_cd
             spawn_bullet_pos = self.pos
-            self.bullet = Projectile(spawn_bullet_pos[0], spawn_bullet_pos[1], self.angle)
+            self.bullet = Projectile(spawn_bullet_pos[0] + GUN_OFFSET_X, spawn_bullet_pos[1] + GUN_OFFSET_Y, self.angle)
             bullet_group.add(self.bullet)
             all_sprites_group.add(self.bullet)
 
@@ -120,31 +120,40 @@ class Projectile(py.sprite.Sprite):
     # made a class for every projectile that will be in my game, so I can use it for enemies later on
     def __init__(self, x, y, angle):
         super().__init__()
-        self.image = py.image.load("bullet_sprite.png").convert_alpha()
+        self.image = py.image.load("fireball_sprite.png").convert_alpha()
         # imported image and made its background transparent as it's a png
         self.image = py.transform.rotozoom(self.image, 0, BULLET_SCALE)
         # made the bullet sprite smaller or larger depending on the scale in the settings
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+
         self.x = x
         self.y = y
         self.angle = angle
-        self.image = py.transform.rotate(self.image, (-self.angle - 90))
+        self.image = py.transform.rotate(self.image, (-self.angle - 225))
         # made image rotate based on the angle where the mouse is relative to the player and took away 90 degrees so it would face the right direction
         self.speed = BULLET_SPEED
         self.x_v = math.cos(self.angle * ((2*math.pi)/360)) * self.speed
         self.y_v = math.sin(self.angle * ((2*math.pi)/360)) * self.speed
+        self.x += self.x_v
+        self.y += self.y_v
+        self.rect.center = (x, y)
         self.bullet_lifetime = BULLET_LIFETIME
         self.spawn_time = py.time.get_ticks()
         # gets the specific time that the bullet was created
+        print("start", self.x)
+        print("start", self.y)
 
     def bullet_movement(self):
+        print("move", self.x)
+        print("move", self.y)
         # function that makes the bullet actually move and moves the rect position as well for when collision is added
-        self.x += self.x_v
-        self.y += self.y_v
+
 
         self.rect.x = int(self.x)
         self.rect.y = int(self.y)
+        self.x += self.x_v
+        self.y += self.y_v
+
 
         if py.time.get_ticks() - self.spawn_time > self.bullet_lifetime:
             self.kill()
@@ -154,8 +163,8 @@ class Projectile(py.sprite.Sprite):
         self.bullet_movement()
 
 
-class Enemy(py.sprite.Sprite):
-    def __init__(self):
+#class Enemy(py.sprite.Sprite):
+#    def __init__(self):
 
 player = Player()
 

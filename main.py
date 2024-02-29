@@ -95,8 +95,11 @@ class Player(py.sprite.Sprite):
 
     def is_shooting(self):
         if self.shoot_cooldown == 0:
+            # if shot cooldown is 0 so there's no cooldown
             self.shoot_cooldown = shot_cd
+            # shot cooldown is changed to time in settings for cooldown
             spawn_bullet_pos = self.pos
+            # spawn position of bullet is equal to
             self.bullet = Projectile(spawn_bullet_pos[0] + GUN_OFFSET_X, spawn_bullet_pos[1] + GUN_OFFSET_Y, self.angle)
             bullet_group.add(self.bullet)
             all_sprites_group.add(self.bullet)
@@ -104,6 +107,7 @@ class Player(py.sprite.Sprite):
     def move(self):
         # movement function for player
         self.pos += py.math.Vector2(self.velocity_x, self.velocity_y)
+        # position of player is increased by the vector of x velocity and y velocity after the players input
         self.hb_rect.center = self.pos
         self.rect.center = self.hb_rect.center
 

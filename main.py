@@ -42,9 +42,10 @@ class Player(py.sprite.Sprite):
     def __init__(self):
         # initialising the function
         super().__init__()
-        self.image = py.transform.rotozoom(py.image.load("player_sprite.png").convert_alpha(), 0, player_size)
-        self.image = py.transform.scale(self.image, (100, 130))
+        self.image = py.transform.rotozoom(py.image.load("player_sprite.png").convert_alpha(), 0, 1)
+        self.image = py.transform.scale(self.image, (100*player_size, 130*player_size))
         self.pos = py.math.Vector2(player_start_x, player_start_y)
+        self.arm_rect = py.draw.rect(self.image, "red", py.Rect(23, 73, 60, 23))
         self.base_image = self.image
         self.hb_rect = self.base_image.get_rect(center = self.pos)
         self.rect = self.hb_rect.copy()
@@ -98,10 +99,10 @@ class Player(py.sprite.Sprite):
             # if shot cooldown is 0 so there's no cooldown
             self.shoot_cooldown = shot_cd
             # shot cooldown is changed to time in settings for cooldown
-            spawn_bullet_pos = self.pos
+            spawn_bullet_pos = self.arm_rect.center
             # spawn position of bullet is equal to
-            self.bullet = Projectile(spawn_bullet_pos[0] + GUN_OFFSET_X, spawn_bullet_pos[1] + GUN_OFFSET_Y, self.angle)
-            bullet_group.add(self.bullet)
+            self.bullet = Projectile((spawn_bullet_pos[0]), (spawn_bullet_pos[1]), self.angle)
+            print(self.bullet)
             all_sprites_group.add(self.bullet)
 
     def move(self):
@@ -124,23 +125,22 @@ class Projectile(py.sprite.Sprite):
     # made a class for every projectile that will be in my game, so I can use it for enemies later on
     def __init__(self, x, y, angle):
         super().__init__()
+        self.angle = angle
         self.image = py.image.load("fireball_sprite.png").convert_alpha()
         # imported image and made its background transparent as it's a png
-        self.image = py.transform.rotozoom(self.image, 0, BULLET_SCALE)
+        self.image = py.transform.rotozoom(self.image,(-self.angle - 90), BULLET_SCALE)
         # made the bullet sprite smaller or larger depending on the scale in the settings
         self.rect = self.image.get_rect()
-
+        #self.rect = py.transform.rotate(self.rect, angle)
         self.x = x
         self.y = y
-        self.angle = angle
-        self.image = py.transform.rotate(self.image, (-self.angle - 225))
         # made image rotate based on the angle where the mouse is relative to the player and took away 90 degrees so it would face the right direction
         self.speed = BULLET_SPEED
         self.x_v = math.cos(self.angle * ((2*math.pi)/360)) * self.speed
         self.y_v = math.sin(self.angle * ((2*math.pi)/360)) * self.speed
         self.x += self.x_v
         self.y += self.y_v
-        self.rect.center = (x, y)
+        # self.rect.center = (x, y)
         self.bullet_lifetime = BULLET_LIFETIME
         self.spawn_time = py.time.get_ticks()
         # gets the specific time that the bullet was created
@@ -158,6 +158,8 @@ class Projectile(py.sprite.Sprite):
         self.x += self.x_v
         self.y += self.y_v
 
+        py.draw.rect(screen, "yellow", self.rect, width=2)
+
 
         if py.time.get_ticks() - self.spawn_time > self.bullet_lifetime:
             self.kill()
@@ -173,7 +175,7 @@ class Projectile(py.sprite.Sprite):
 player = Player()
 
 all_sprites_group = py.sprite.Group()
-# made a group for all sprites to easily dislay them all on the screen at the same time
+# made a group for all sprites to easily display them all on the screen at the same time
 bullet_group = py.sprite.Group()
 # made a group for all bullets in case I want to alter how they appear on the screen
 
@@ -195,8 +197,8 @@ while not crashed:
     all_sprites_group.update()
     screen.blit(platform, (display_width/2, display_height/2))
     screen.blit(crosshair,((x_point-23),(y_point-20)))
-    py.draw.rect(screen, "red", player.hb_rect, width=2)
-    py.draw.rect(screen, "yellow", player.rect, width=2)
+    #py.draw.rect(screen, "red", player.hb_rect, width=2)
+    #py.draw.rect(screen, "yellow", player.rect, width=2)
 
     py.display.update()
     clock.tick(FPS)

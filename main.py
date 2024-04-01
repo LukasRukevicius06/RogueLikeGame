@@ -1,9 +1,11 @@
+######################################## IMPORT LIBRARIES ########################################
 import pygame as py
 from sys import exit
 import random
 from settings import *
 import math
 import time
+from tiles import *
 from PIL import Image
 # imported pygame as py so it is easier to write
 
@@ -99,10 +101,11 @@ class Player(py.sprite.Sprite):
             # if shot cooldown is 0 so there's no cooldown
             self.shoot_cooldown = shot_cd
             # shot cooldown is changed to time in settings for cooldown
-            spawn_bullet_pos = self.arm_rect.center
+            x = self.pos.x + self.arm_rect.x
+            y = self.pos.y + self.arm_rect.y
             # spawn position of bullet is equal to
-            self.bullet = Projectile((spawn_bullet_pos[0]), (spawn_bullet_pos[1]), self.angle)
-            print(self.bullet)
+            self.bullet = Projectile((x), (y), self.angle)
+            bullet_group.add(self.bullet)
             all_sprites_group.add(self.bullet)
 
     def move(self):
@@ -146,12 +149,13 @@ class Projectile(py.sprite.Sprite):
         # gets the specific time that the bullet was created
         print("start", self.x)
         print("start", self.y)
+        # prints starting coordinates of bullet sprite when the bullet class is made
 
     def bullet_movement(self):
+        # function that makes the bullet actually move and moves the rect position as well for when collision is added
         print("move", self.x)
         print("move", self.y)
-        # function that makes the bullet actually move and moves the rect position as well for when collision is added
-
+        # prints coordinates of where the bullet is every frame while moving
 
         self.rect.x = int(self.x)
         self.rect.y = int(self.y)
@@ -197,8 +201,8 @@ while not crashed:
     all_sprites_group.update()
     screen.blit(platform, (display_width/2, display_height/2))
     screen.blit(crosshair,((x_point-23),(y_point-20)))
-    #py.draw.rect(screen, "red", player.hb_rect, width=2)
-    #py.draw.rect(screen, "yellow", player.rect, width=2)
+    py.draw.rect(screen, "red", player.hb_rect, width=2)
+    py.draw.rect(screen, "yellow", player.rect, width=2)
 
     py.display.update()
     clock.tick(FPS)

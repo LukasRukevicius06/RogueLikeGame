@@ -1,7 +1,9 @@
 ######################################## IMPORT LIBRARIES ########################################
+
 import pygame as py
 from sys import exit
 import random
+import pygame.sprite
 from settings import *
 import math
 import time
@@ -30,14 +32,11 @@ clock = py.time.Clock()
 platform = py.image.load('platform.png')
 gameIcon = py.image.load("icon.png")
 # load images
-background = py.transform.scale(py.image.load("background2.jpg"), (display_width, display_height)).convert_alpha()
+background = py.transform.scale(py.image.load("ground.png"), (display_width, display_height)).convert_alpha()
 crosshair = py.image.load('crosshair.png')
 crosshair = py.transform.smoothscale(crosshair, (50,50))
 py.display.set_icon(gameIcon)
-# chImage = Image.open('crosshair.png')
-# chImage = chImage.resize((50,50), Image.LANCZOS)
-# chStr = chImage.tobytes("raw", "RGBA")
-# crosshair = py.image.fromstring(chStr, (50,50), "RGBA")
+
 
 class Player(py.sprite.Sprite):
     # makes class for the player with methods inside to allow it to move
@@ -45,15 +44,20 @@ class Player(py.sprite.Sprite):
         # initialising the function
         super().__init__()
         self.image = py.transform.rotozoom(py.image.load("player_sprite.png").convert_alpha(), 0, 1)
+        # makes player sprite background transparent as it's a png
         self.image = py.transform.scale(self.image, (100*player_size, 130*player_size))
+        # allows the player size to be changed by a specific scale in the settings
         self.pos = py.math.Vector2(player_start_x, player_start_y)
-        self.arm_rect = py.draw.rect(self.image, "red", py.Rect(23, 73, 60, 23))
+        # sets starting position of player to starting position in settings
         self.base_image = self.image
-        self.hb_rect = self.base_image.get_rect(center = self.pos)
+        # makes a copy of the original image
+        self.hb_rect = self.base_image.get_rect(center=self.pos)
+        # sets up a rectangle for the player hit box
         self.rect = self.hb_rect.copy()
         self.speed = player_speed
+        # sets players speed
         self.shoot = False
-        # boolean to state whether player has shot
+        # boolean to check when player is trying to shoot
         self.shoot_cooldown = 0
         # variable for the cooldown of how often player can shoot
         self.gun_barrel_offset = py.math.Vector2(GUN_OFFSET_X, GUN_OFFSET_Y)
@@ -98,14 +102,12 @@ class Player(py.sprite.Sprite):
 
     def is_shooting(self):
         if self.shoot_cooldown == 0:
-            # if shot cooldown is 0 so there's no cooldown
+            # if shot cooldown is 0 so cooldown is over
             self.shoot_cooldown = shot_cd
-            # shot cooldown is changed to time in settings for cooldown
-            x = self.pos.x + self.arm_rect.x
-            y = self.pos.y + self.arm_rect.y
+            # shot cooldown is reset to cooldown time in settings
+            spawn_bullet_pos = self.pos
             # spawn position of bullet is equal to
-            self.bullet = Projectile((x), (y), self.angle)
-            bullet_group.add(self.bullet)
+            self.bullet = Projectile((spawn_bullet_pos[0]), (spawn_bullet_pos[1]), self.angle)
             all_sprites_group.add(self.bullet)
 
     def move(self):
@@ -173,6 +175,26 @@ class Projectile(py.sprite.Sprite):
         self.bullet_movement()
 
 
+class Camera(pygame.sprite.Group):
+    def __init__(self):
+        super().__init__()
+        self.offset = py.math.Vector2()
+        self.floor_rect = background.get_rect(topleft = (0, 0))
+
+    def custom_draw(self):
+        self.offset.x = player.rect.centerx - display_width // 2
+        self.offset.y = player.rect.centery - display_height // 2
+
+        # draw the floor
+        floor_offset_pos = self.floor_rect.topleft - self.offset
+        screen.blit(background, floor_offset_pos)
+
+        for sprite in all_sprites_group:
+            offset_pos = sprite.rect.topleft - self.offset
+            screen.blit(sprite.image, offset_pos)
+
+
+
 #class Enemy(py.sprite.Sprite):
 #    def __init__(self):
 
@@ -203,6 +225,7 @@ while not crashed:
     screen.blit(crosshair,((x_point-23),(y_point-20)))
     py.draw.rect(screen, "red", player.hb_rect, width=2)
     py.draw.rect(screen, "yellow", player.rect, width=2)
+
 
     py.display.update()
     clock.tick(FPS)

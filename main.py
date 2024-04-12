@@ -103,7 +103,7 @@ class Player(py.sprite.Sprite):
     def is_shooting(self):
         if self.shoot_cooldown == 0:
             # if shot cooldown is 0 so cooldown is over
-            self.shoot_cooldown = shot_cd
+            self.shoot_cooldown = SHOT_COOLDOWN
             # shot cooldown is reset to cooldown time in settings
             spawn_bullet_pos = self.pos
             # spawn position of bullet is equal to

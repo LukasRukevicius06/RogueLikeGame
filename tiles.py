@@ -1,5 +1,8 @@
-import pygame as py, csv, os
+import pygame as py
+import csv
+import os
 # Code for setting up tiles and tilemap for game
+
 
 class Tile(py.sprite.Sprite):
     def __init__(self, image, x, y, spritesheet):

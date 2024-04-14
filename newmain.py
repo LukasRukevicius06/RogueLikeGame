@@ -75,6 +75,10 @@ class Player(py.sprite.Sprite):
             for bullet in player_bullets:
                 bullet.y -= self.speed
 
+        if keys[py.K_g]:
+            enemy = SlimeEnemy(player_start_x, player_start_y)
+            enemies.append(enemy)
+
         if self.vel_x != 0 and self.vel_y != 0:
             self.vel_x /= math.sqrt(2)
             self.vel_y /= math.sqrt(2)
@@ -154,7 +158,7 @@ class Projectile(py.sprite.Sprite):
         self.x += self.x_v
         self.y += self.y_v
 
-        py.draw.rect(display, "yellow", (self.rect), width=2)
+        py.draw.rect(display, "yellow", self.rect, width=2)
         display.blit(self.image, (self.x, self.y))
 
         if py.time.get_ticks() - self.spawn_time > self.bullet_lifetime:
@@ -164,7 +168,53 @@ class Projectile(py.sprite.Sprite):
         self.bullet_movement()
 
 
+class SlimeEnemy(py.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.animation_images = [py.image.load("slime_animation_0.png"), py.image.load("slime_animation_1.png"),
+                                 py.image.load("slime_animation_2.png"), py.image.load("slime_animation_3.png")]
+        self.animation_count = 0
+        self.reset_offset = 0
+        self.offset_x = random.randrange(-150, 150)
+        self.offset_y = random.randrange(-150, 150)
+        self.rect = py.Rect(self.x, self.y, 64, 60)
+
+    def main(self):
+        py.draw.rect(display, "green", self.rect, width=2)
+        if self.animation_count + 1 == 16:
+            self.animation_count = 0
+        self.animation_count += 1
+
+        if self.reset_offset == 0:
+            self.offset_x = random.randrange(-150, 150)
+            self.offset_y = random.randrange(-150, 150)
+            self.reset_offset = random.randrange(120, 150)
+        else:
+            self.reset_offset -= 1
+
+        self.enemy_movement()
+
+        display.blit(py.transform.scale(self.animation_images[self.animation_count//4], (64, 60)),
+                     (self.x - display_scroll[0], self.y - display_scroll[1]))
+
+    def enemy_movement(self):
+        if (player.pos[0] + self.offset_x) > (self.x - display_scroll[0]):
+            self.x += SLIME_SPEED
+        elif (player.pos[0] + self.offset_x) < (self.x - display_scroll[0]):
+            self.x -= SLIME_SPEED
+        if (player.pos[1] + self.offset_y) > (self.y - display_scroll[1]):
+            self.y += SLIME_SPEED
+        elif (player.pos[1] + self.offset_y) < (self.y - display_scroll[1]):
+            self.y -= SLIME_SPEED
+
+        self.rect.topleft = (self.x - display_scroll[0], self.y - display_scroll[1])
+
+
 player = Player()
+
+enemies = [SlimeEnemy(player_start_x, player_start_y)]
 
 display_scroll = [0, 0]
 
@@ -178,6 +228,8 @@ def draw_display():
     player.main()
     for bullet in player_bullets:
         bullet.update()
+    for enemy in enemies:
+        enemy.main()
     # py.draw.rect(display, (255, 255, 255), (100 - display_scroll[0], 100 - display_scroll[1], 16, 16))
     py.display.update()
 

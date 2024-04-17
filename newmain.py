@@ -35,6 +35,12 @@ slime2 = py.transform.scale(slime2, (64, 60))
 slime3 = py.transform.scale(slime3, (64, 60))
 bullet_sound = py.mixer.Sound("344312__musiclegends__laser-shoot7.wav")
 death_sound = py.mixer.Sound("173126__replix__death-sound-male.wav")
+full_heart = py.image.load("full_heart.png")
+full_heart = py.transform.scale_by(full_heart, 4)
+half_heart = py.image.load("half_heart.png")
+half_heart = py.transform.scale_by(half_heart, 4)
+empty_heart = py.image.load("empty_heart.png")
+empty_heart = py.transform.scale_by(empty_heart, 4)
 
 
 class Player(py.sprite.Sprite):
@@ -73,7 +79,7 @@ class Player(py.sprite.Sprite):
             if self.rect.colliderect(enemy.rect):
                 player.kill()
 
-    def move(self):
+    def render(self):
         py.draw.rect(display, (0, 255, 0), self.rect, width=2)
         display.blit(self.image, self.rect)
 
@@ -118,10 +124,6 @@ class Player(py.sprite.Sprite):
                 bullet.y -= self.speed
                 # player speed is taken away from bullet y position
 
-        if keys[py.K_g]:
-            enemy = SlimeEnemy(self.pos[0] + random.randint(-600, 600) - display_scroll[0], self.pos[1] + random.randint(-600, 600) - display_scroll[1])
-            enemies.append(enemy)
-
         if self.vel_x != 0 and self.vel_y != 0:
             self.vel_x /= math.sqrt(2)
             self.vel_y /= math.sqrt(2)
@@ -136,6 +138,11 @@ class Player(py.sprite.Sprite):
         else:
             self.shoot = False
 
+        if keys[py.K_g]:
+            enemy = SlimeEnemy(self.pos[0] + random.randint(-600, 600) - display_scroll[0],
+                               self.pos[1] + random.randint(-600, 600) - display_scroll[1])
+            enemies.append(enemy)
+
         self.mouse_coordinates = [py.mouse.get_pos()[0], py.mouse.get_pos()[1]]
 
     def shooting(self):
@@ -143,31 +150,111 @@ class Player(py.sprite.Sprite):
             # if shot cooldown is 0 so cooldown is over
             self.shoot_cooldown = SHOT_COOLDOWN
             # shot cooldown is reset to cooldown time in settings
-            spawn_bullet_pos = (self.pos)
+            spawn_bullet_pos = self.pos
             print(spawn_bullet_pos)
             # spawn position of bullet is equal to
             player_bullets.append(Projectile((spawn_bullet_pos[0]), (spawn_bullet_pos[1]), self.angle, fireball))
             bullet_sound.play()
 
     def mouse(self):
-        display.blit(crosshair, (self.mouse_coordinates[0] - crosshair.get_width()/2, self.mouse_coordinates[1] - crosshair.get_height()/2))
+        display.blit(crosshair, (self.mouse_coordinates[0] - crosshair.get_width()/2,
+                                 self.mouse_coordinates[1] - crosshair.get_height()/2))
 
     def player_rotation(self):
         self.x_change_mouse_player = self.mouse_coordinates[0] - self.rect.centerx
+        # stores distance from players x center to the mouse x coordinate
         self.y_change_mouse_player = self.mouse_coordinates[1] - self.rect.centery
+        # stores distance from players y center to the mouse y coordinate
         self.angle = math.degrees(math.atan2(self.y_change_mouse_player, self.x_change_mouse_player))
+        # the angle at which the player will be rotating is calculated using trigonometry
         self.image = py.transform.rotate(self.base_image, -self.angle)
+        # image is transformed by rotation of the image copy, by - the angle
         self.rect = self.image.get_rect(center=self.pos)
+        # the rectangle hit box is set to the rotated image which will change its size
+        # and the center of the rectangle is set to the player position
 
     def main(self):
         self.inputs()
         self.mouse()
-        self.move()
         self.player_rotation()
+        self.render()
         self.player_collision()
 
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
+
+
+class PlayerStats:
+    # class to keep track of players stats such as health and xp
+    def __init__(self):
+        self.full_heart = full_heart
+        # stores sprite for full heart
+        self.half_heart = half_heart
+        # stores sprite for half a heart
+        self.empty_heart = empty_heart
+        # stores sprite for empty heart
+        self.money_sprite = py.image.load("money_sprite.png")
+        # stores sprite for money to be used later on
+        self.health = 6
+        # variable for the overall health in terms of half hearts
+        self.tot_hearts = 3
+        # sets total number of hearts the player should have including empty hearts
+        self.half = False
+        # boolean to check if the player has a half heart as they will only ever have
+        # 1 half heart maximum, so integer is unnecessary
+        self.full_hearts = 3
+        # integer variable for the number of full hearts
+        self.empty_hearts = 0
+        # integer variable for number of empty hearts
+        self.damage_cooldown = SHOT_COOLDOWN
+        # sets a cooldown for how often the player can be hit, so they don't lose
+        # all their lives in one go due to constant collision
+
+    def update(self):
+        self.health_display()
+        # displays players health on screen
+
+        if self.damage_cooldown > 0:
+            # if damage cooldown is not finished
+            self.damage_cooldown -= 1
+            # reduce the cooldown by 1 for every frame
+
+    def health_display(self):
+        self.health_calc()
+        # runs function to calculate health
+        offset = 0
+        # sets offset for where hearts should be placed on screen
+        for i in range(self.full_hearts):
+            # runs a loop to display all the full hearts on screen and
+            # increases the offset every time a heart is displayed
+            display.blit(self.full_heart, (0 + offset, 0))
+            offset += 150
+        if self.half:
+            # if there is a half heart because health is odd
+            display.blit(self.half_heart, (0 + offset, 0))
+            # display the half heart after the last full heart
+        if self.empty_hearts > 0:
+            # if there is any empty hearts
+            for i in range(self.empty_hearts):
+                # for every empty heart that exists
+                offset += 150
+                # increment offset
+                display.blit(self.empty_heart, (0 + offset, 0))
+                # display the empty heart plus the offset
+
+    def health_calc(self):
+        if self.health % 2 == 1:
+            # if there is a half heart in the health
+            self.full_hearts = self.health // 2
+            # number of full hearts = health / 2 without remainder
+            self.half = True
+            # half hearts = 1
+            self.empty_hearts = self.tot_hearts - self.full_hearts
+            # number of empty hearts = total number of hearts - number of full hearts
+
+
+
+
 
 
 class Projectile(py.sprite.Sprite):
@@ -244,28 +331,41 @@ class SlimeEnemy(py.sprite.Sprite):
         self.animation_count += 1
 
         if self.reset_offset == 0:
+            # if its time to reset the offset
             self.offset_x = random.randrange(-150, 150)
             self.offset_y = random.randrange(-150, 150)
             self.reset_offset = random.randrange(120, 150)
+            # time taken till reset offset again
         else:
             self.reset_offset -= 1
 
         self.enemy_movement()
 
-        display.blit(self.animation_images[self.animation_count//4], (self.x - display_scroll[0], self.y - display_scroll[1]))
+        self.render_enemy()
+
+    def render_enemy(self):
+        display.blit(self.animation_images[self.animation_count // 4],
+                     (self.x - display_scroll[0], self.y - display_scroll[1]))
 
     def enemy_movement(self):
         if (player.pos[0] + self.offset_x) > (self.x - display_scroll[0]):
+            # if player x pos + slime offset is on right side of position, move right
             self.x += SLIME_SPEED
         elif (player.pos[0] + self.offset_x) < (self.x - display_scroll[0]):
+            # if player x pos + slime offset is on left side of player position, move left
             self.x -= SLIME_SPEED
         if (player.pos[1] + self.offset_y) > (self.y - display_scroll[1]):
+            # if player y pos + slime offset is on top of player position, move up
             self.y += SLIME_SPEED
         elif (player.pos[1] + self.offset_y) < (self.y - display_scroll[1]):
+            # if player y pos + slime offset is down from player position, move down
             self.y -= SLIME_SPEED
 
         self.rect.topleft = (self.x - display_scroll[0], self.y - display_scroll[1])
 
+
+# making instances of player class and storing global variables
+stats = PlayerStats()
 
 player = Player()
 
@@ -278,6 +378,10 @@ player_bullets = []
 
 def bullet_collision():
     for enemy in enemies:
+        if enemy.rect.colliderect(player.rect):
+            if stats.damage_cooldown == 0:
+                stats.damage_cooldown = SHOT_COOLDOWN
+                stats.health -= 1
         for bullet in player_bullets:
             if bullet.rect.colliderect(enemy.rect):
                 bullet.kill()
@@ -297,7 +401,7 @@ def draw_display():
     for enemy in enemies:
         enemy.main()
     bullet_collision()
-    # py.draw.rect(display, (255, 255, 255), (100 - display_scroll[0], 100 - display_scroll[1], 16, 16))
+    stats.update()
     py.display.update()
 
 

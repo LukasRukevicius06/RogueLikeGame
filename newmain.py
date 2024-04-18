@@ -41,6 +41,8 @@ half_heart = py.image.load("half_heart.png")
 half_heart = py.transform.scale_by(half_heart, 4)
 empty_heart = py.image.load("empty_heart.png")
 empty_heart = py.transform.scale_by(empty_heart, 4)
+py.font.init()
+my_font = py.font.SysFont('Comic Sans MS', 30)
 
 
 class Player(py.sprite.Sprite):
@@ -73,11 +75,6 @@ class Player(py.sprite.Sprite):
         # boolean to see whether player is trying to shoot
         self.shoot_cooldown = 0
         # sets shooting cooldown to 0 so player can shoot off spawn
-
-    def player_collision(self):
-        for enemy in enemies:
-            if self.rect.colliderect(enemy.rect):
-                player.kill()
 
     def render(self):
         py.draw.rect(display, (0, 255, 0), self.rect, width=2)
@@ -178,7 +175,6 @@ class Player(py.sprite.Sprite):
         self.mouse()
         self.player_rotation()
         self.render()
-        self.player_collision()
 
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
@@ -193,8 +189,6 @@ class PlayerStats:
         # stores sprite for half a heart
         self.empty_heart = empty_heart
         # stores sprite for empty heart
-        self.money_sprite = py.image.load("money_sprite.png")
-        # stores sprite for money to be used later on
         self.health = 6
         # variable for the overall health in terms of half hearts
         self.tot_hearts = 3
@@ -209,10 +203,17 @@ class PlayerStats:
         self.damage_cooldown = SHOT_COOLDOWN
         # sets a cooldown for how often the player can be hit, so they don't lose
         # all their lives in one go due to constant collision
+        self.money_sprite = py.image.load("money_sprite.png")
+        self.money_sprite = py.transform.scale_by(self.money_sprite, 0.2)
+        # stores sprite for money to be used later on
+        self.balance = 0
 
     def update(self):
-        self.health_display()
+        if self.health > 0:
+            self.health_calc()
+            self.health_display()
         # displays players health on screen
+        self.money_track()
 
         if self.damage_cooldown > 0:
             # if damage cooldown is not finished
@@ -220,7 +221,6 @@ class PlayerStats:
             # reduce the cooldown by 1 for every frame
 
     def health_display(self):
-        self.health_calc()
         # runs function to calculate health
         offset = 0
         # sets offset for where hearts should be placed on screen
@@ -233,28 +233,44 @@ class PlayerStats:
             # if there is a half heart because health is odd
             display.blit(self.half_heart, (0 + offset, 0))
             # display the half heart after the last full heart
+            offset += 150
         if self.empty_hearts > 0:
             # if there is any empty hearts
             for i in range(self.empty_hearts):
                 # for every empty heart that exists
-                offset += 150
-                # increment offset
                 display.blit(self.empty_heart, (0 + offset, 0))
                 # display the empty heart plus the offset
+                offset += 150
+                # increment the offset
 
     def health_calc(self):
-        if self.health % 2 == 1:
+        if self.health % 2 == 1 and self.health > 0:
             # if there is a half heart in the health
             self.full_hearts = self.health // 2
             # number of full hearts = health / 2 without remainder
             self.half = True
             # half hearts = 1
+            self.empty_hearts = self.tot_hearts - self.full_hearts - 1
+            # number of empty hearts = total number of hearts - number of full hearts - 1
+
+        elif self.health % 2 == 0:
+            # if there isn't a half heart in the health
+            self.full_hearts = self.health // 2
+            # number of full hearts = health divided by 2
+            self.half = False
+            # is there a half heart is set to false
             self.empty_hearts = self.tot_hearts - self.full_hearts
-            # number of empty hearts = total number of hearts - number of full hearts
+            # number of empty hearts is set to total hearts - full hearts
 
-
-
-
+    def money_track(self):
+        # function to track the money the player has
+        text_surface = my_font.render(str(self.balance), False, (255, 215, 0))
+        # renders the balance of the player as a string using the font I assigned
+        # earlier and sets it to colour of gold
+        display.blit(self.money_sprite, (-10, 132))
+        # draws the money sprite onto screen to represent players money
+        display.blit(text_surface, (85, 160))
+        # draws the value of money the player has next to the money sprite
 
 
 class Projectile(py.sprite.Sprite):
@@ -380,7 +396,7 @@ def bullet_collision():
     for enemy in enemies:
         if enemy.rect.colliderect(player.rect):
             if stats.damage_cooldown == 0:
-                stats.damage_cooldown = SHOT_COOLDOWN
+                stats.damage_cooldown = HIT_COOLDOWN
                 stats.health -= 1
         for bullet in player_bullets:
             if bullet.rect.colliderect(enemy.rect):
@@ -388,6 +404,7 @@ def bullet_collision():
                 player_bullets.remove(bullet)
                 enemy.kill()
                 enemies.remove(enemy)
+                stats.balance += 50
                 death_sound.play()
 
 

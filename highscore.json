@@ -1,0 +1,17 @@
+{
+  "test_level.csv": {
+    "wave": 42,
+    "time": 737,
+    "money": 87431,
+    "kills": 1918,
+    "level": 14
+  },
+  "map2_ring.csv": {
+    "wave": 90,
+    "time": 1168,
+    "money": 427260,
+    "kills": 8730,
+    "level": 17,
+    "difficulty": "Normal"
+  }
+}
